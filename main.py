@@ -172,7 +172,8 @@ for i in range(len(ss.df) - 1):
         commands.append(cmd)
 
 st.markdown("## Start des Pressure Profilings")
-if st.button("Start des Pressure Profilings", type='primary', use_container_width=True) and not ss.df.empty:
+pw = st.text_input('Passwort eingeben:')
+if st.button("Start des Pressure Profilings", type='primary', use_container_width=True) and not ss.df.empty and pw=='1245':
     # todo: check if message size is to big (> 500)
     send_to_esp32(commands)
     # Simulation: Ausführung der Befehle zum vorgegebenen Zeitpunkt
