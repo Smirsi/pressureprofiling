@@ -78,8 +78,7 @@ if not os.path.exists(profiles_dir):
     os.makedirs(profiles_dir)
 
 
-st.markdown("## Profile erstellen")
-st.markdown("### Profil laden")
+st.markdown("### Pressure Profile laden")
 col1, col2 = st.columns(2, vertical_alignment="bottom")
 csv_files = [f[:-4] for f in os.listdir(profiles_dir) if f.endswith(".csv")]
 if csv_files:
@@ -88,6 +87,7 @@ if csv_files:
         file_path = os.path.join(profiles_dir, selected_file)
         ss.df = pd.read_csv(file_path)
 st.divider()
+st.markdown("### Pressure Profile erstellen")
 col1, col2, col3 = st.columns(3, vertical_alignment="bottom")
 time_value = col1.number_input("Zeitpunkt (Sekunden)", min_value=0.0, step=0.1, value=0.0)
 pressure_value = col2.number_input("Druck (Bar)", min_value=3.0, max_value=9.5, step=0.1, value=9.0)
@@ -129,7 +129,7 @@ if col3.button("Pressure Profile zurücksetzen", type='primary', use_container_w
 
 st.divider()
 
-st.markdown("## Anfangsdruck einstellen")
+st.markdown("### Anfangsdruck einstellen")
 col1, col2, col3 = st.columns(3, vertical_alignment='bottom')
 pressure_current = col1.number_input("Derzeitiger Druck (Bar)", min_value=3.0, max_value=9.5, step=0.1, value=9.0)
 if not ss.df.empty:
@@ -190,7 +190,7 @@ for i in range(len(ss.df) - 1):
     if cmd:
         commands.append(cmd)
 
-st.markdown("## Start des Pressure Profilings")
+st.markdown("### Start des Pressure Profilings")
 pw = st.text_input('Passwort eingeben:')
 if st.button("Start des Pressure Profilings", type='primary', use_container_width=True) and not ss.df.empty and pw=='1245':
     # todo: check if message size is to big (> 500)
