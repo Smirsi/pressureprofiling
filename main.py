@@ -133,7 +133,7 @@ st.markdown("## Anfangsdruck einstellen")
 col1, col2, col3 = st.columns(3, vertical_alignment='bottom')
 pressure_current = col1.number_input("Derzeitiger Druck (Bar)", min_value=3.0, max_value=9.5, step=0.1, value=9.0)
 if not ss.df.empty:
-    pressure_target = col2.number_input("Anfangsdruck (Bar)", value=ss.df['pressure'][0], disabled=True)
+    pressure_target = col2.number_input("Anfangsdruck (Bar)", value=float(ss.df['pressure'][0]), disabled=True)
 else:
     pressure_target = col2.number_input("Druck (Bar)", value=9.0)
 if col3.button("Druck einstellen", type='primary', use_container_width=True):
