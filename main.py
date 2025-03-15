@@ -195,14 +195,15 @@ for i in range(len(ss.df) - 1):
 
 st.markdown("### Start des Pressure Profilings")
 pw = st.text_input('Passwort eingeben:')
-if (st.button("Start des Pressure Profilings", type='primary', use_container_width=True) and not ss.df.empty
-        and pw == '1245'):
-    # todo: check if message size is to big (> 500)
-    send_to_esp32(commands)
-elif pw != '1245':
-    st.toast("Falsches Passwort!", icon="❌")
-elif not ss.df.empty:
-    st.toast("Kein Profil erstellt!", icon="❌")
+if st.button("Start des Pressure Profilings", type='primary', use_container_width=True):
+    if not ss.df.empty and pw == '1245':
+        # todo: check if message size is to big (> 500)
+        send_to_esp32(commands)
+        st.toast(f"Pressure Profile gesendet!", icon="📜")
+    elif pw != '1245':
+        st.toast("Falsches Passwort!", icon="❌")
+    elif not ss.df.empty:
+        st.toast("Kein Profil erstellt!", icon="❌")
     # Simulation: Ausführung der Befehle zum vorgegebenen Zeitpunkt
     # (Die Zeitangaben im DataFrame werden hier als reale Sekunden angenommen)
     # start_sim_time = time.time()  # Simulationsstart in realer Zeit
