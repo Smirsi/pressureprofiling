@@ -77,9 +77,10 @@ profiles_dir = 'profiles'
 if not os.path.exists(profiles_dir):
     os.makedirs(profiles_dir)
 
-col1, col2 = st.columns(2, vertical_alignment="bottom")
+
 st.markdown("## Profile erstellen")
 st.markdown("### Profil laden")
+col1, col2 = st.columns(2, vertical_alignment="bottom")
 csv_files = [f[:-4] for f in os.listdir(profiles_dir) if f.endswith(".csv")]
 if csv_files:
     selected_file = col1.selectbox("Wähle ein Pressure Profile aus", csv_files) + '.csv'
@@ -96,7 +97,7 @@ if col3.button('Hinzufügen', type='primary', use_container_width=True):
 
 
 col1, col2 = st.columns([1, 2], vertical_alignment="center", gap="medium")
-df_edited = col1.data_editor(
+ss.df = col1.data_editor(
     ss.df,
     column_config={
         "time": "Zeitpunkt [s]",
@@ -106,8 +107,7 @@ df_edited = col1.data_editor(
     use_container_width=True,
     num_rows="dynamic"
 )
-if col1.button('Aktualisieren', type='primary', use_container_width=True):
-    ss.df = df_edited.sort_values(by="time").reset_index(drop=True)
+
 if not ss.df.empty:
     fig = px.line(ss.df, x="time", y="pressure", markers=True)
     fig.update_layout(xaxis_title="Zeit (s)", yaxis_title="Druck (Bar)")
@@ -120,6 +120,9 @@ if col2.button("Pressure Profile Speichern", type='primary', use_container_width
     if filename:
         file_path = os.path.join(profiles_dir, f"{filename}.csv")
         ss.df.to_csv(file_path, index=False)
+        st.toast(f"Pressure Profile gespeichert!", icon="📜")
+    else:
+        st.toast("Bitte einen Dateinamen eingeben!", icon="❌")
 if col3.button("Pressure Profile zurücksetzen", type='primary', use_container_width=True):
     ss.df = pd.DataFrame(columns=["time", "pressure"])
     st.rerun()
@@ -133,7 +136,7 @@ if not ss.df.empty:
     pressure_target = col2.number_input("Anfangsdruck (Bar)", value=ss.df['pressure'][0], disabled=True)
 else:
     pressure_target = col2.number_input("Druck (Bar)", value=9.0)
-if col3.button("(Anfangs-)druck einstellen", type='primary', use_container_width=True):
+if col3.button("Druck einstellen", type='primary', use_container_width=True):
     pressure_diff = pressure_target - pressure_current
 
 st.divider()
