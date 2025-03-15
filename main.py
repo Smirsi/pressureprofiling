@@ -6,6 +6,7 @@ import json
 import time
 import paho.mqtt.client as paho
 from paho import mqtt
+import os
 
 # Schrittmotor-Parameter
 STEPS_PER_REV = 4096  # Schritte pro Umdrehung in half stepping, otherwise 2048 in full-step mode
@@ -70,41 +71,56 @@ st.title("Pressure Profiling")
 
 if "df" not in ss:
     ss.df = pd.DataFrame(columns=["time", "pressure"])
-    data = {
-        'time': [0, 5, 10, 20, 24, 26, 30, 32],
-        'pressure': [9, 9, 6, 6, 7, 7, 9, 9]
-    }
-    ss.df = pd.DataFrame(data)
 
+# Ordner für CSV-Dateien
+profiles_dir = 'profiles'
+if not os.path.exists(profiles_dir):
+    os.makedirs(profiles_dir)
 
+col1, col2 = st.columns(2, vertical_alignment="bottom")
 st.markdown("## Profile erstellen")
-col1, col2 = st.columns(2)
+st.markdown("### Profil laden")
+csv_files = [f[:-4] for f in os.listdir(profiles_dir) if f.endswith(".csv")]
+if csv_files:
+    selected_file = col1.selectbox("Wähle ein Pressure Profile aus", csv_files) + '.csv'
+    if col2.button("Laden", type='primary', use_container_width=True):
+        file_path = os.path.join(profiles_dir, selected_file)
+        ss.df = pd.read_csv(file_path)
+st.divider()
+col1, col2, col3 = st.columns(3, vertical_alignment="bottom")
 time_value = col1.number_input("Zeitpunkt (Sekunden)", min_value=0.0, step=0.1, value=0.0)
 pressure_value = col2.number_input("Druck (Bar)", min_value=3.0, max_value=9.5, step=0.1, value=9.0)
-if st.button('Hinzufügen', type='primary', use_container_width=True):
+if col3.button('Hinzufügen', type='primary', use_container_width=True):
     new_entry = pd.DataFrame([{"time": time_value, "pressure": pressure_value}])
     ss.df = pd.concat([ss.df, new_entry], ignore_index=True).sort_values(by="time").reset_index(drop=True)
 
-# todo: profiles speichern und wieder holen
-st.markdown("#### Eingetragene Werte")
-col1, col2 = st.columns(2)
-ss.df = col1.data_editor(
+
+col1, col2 = st.columns([1, 2], vertical_alignment="center", gap="medium")
+df_edited = col1.data_editor(
     ss.df,
     column_config={
-        "time": "Zeitpunkt",
-        "pressure": "Druck",
+        "time": "Zeitpunkt [s]",
+        "pressure": "Druck [bar]",
     },
     hide_index=True,
+    use_container_width=True,
+    num_rows="dynamic"
 )
-
-with col2:
-    if not ss.df.empty:
-        fig = px.line(ss.df, x="time", y="pressure", markers=True)
-        fig.update_layout(xaxis_title="Zeit (s)", yaxis_title="Druck (Bar)")
-        st.plotly_chart(fig, use_container_width=True)
-
-
-if st.button("Pressure Profile zurücksetzen", type='primary', use_container_width=True):
+if col1.button('Aktualisieren', type='primary', use_container_width=True):
+    ss.df = df_edited.sort_values(by="time").reset_index(drop=True)
+if not ss.df.empty:
+    fig = px.line(ss.df, x="time", y="pressure", markers=True)
+    fig.update_layout(xaxis_title="Zeit (s)", yaxis_title="Druck (Bar)")
+    col2.plotly_chart(fig, use_container_width=True)
+st.divider()
+col1, col2, col3 = st.columns(3, vertical_alignment="bottom")
+# Benutzer kann einen Dateinamen angeben (ohne .csv)
+filename = col1.text_input("Dateiname", value="")
+if col2.button("Pressure Profile Speichern", type='primary', use_container_width=True):
+    if filename:
+        file_path = os.path.join(profiles_dir, f"{filename}.csv")
+        ss.df.to_csv(file_path, index=False)
+if col3.button("Pressure Profile zurücksetzen", type='primary', use_container_width=True):
     ss.df = pd.DataFrame(columns=["time", "pressure"])
     st.rerun()
 
