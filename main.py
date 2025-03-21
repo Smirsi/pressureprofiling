@@ -9,7 +9,7 @@ from paho import mqtt
 import os
 
 # Schrittmotor-Parameter
-STEPS_PER_REV = 4096  # Schritte pro Umdrehung in half stepping, otherwise 2048 in full-step mode
+STEPS_PER_REV = 200  # Schritte pro Umdrehung in half stepping, otherwise 2048 in full-step mode
 BAR_PER_REV = 2
 BAR_TO_STEPS = STEPS_PER_REV // BAR_PER_REV  # Schritte pro Bar
 

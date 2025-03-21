@@ -24,6 +24,7 @@
 #include <FS.h>
 #include <LittleFS.h>
 #include <CertStoreBearSSL.h>
+#include <ArduinoOTA.h>
 
 // WLAN- und MQTT-Daten (bitte anpassen)
 const char* ssid = "ZTE 2.4G";
@@ -38,8 +39,9 @@ const char* mqtt_username = "Smirsi";
 const char* mqtt_password = "PressureProfiling8266";
 
 
-const int stepsPerRevolution = 2048;  // change this to fit the number of steps per revolution
+const int stepsPerRevolution = 200;  // change this to fit the number of steps per revolution
 
+/*
 // ULN2003 Motor Driver Pins
 #define IN1 5
 #define IN2 4
@@ -48,6 +50,13 @@ const int stepsPerRevolution = 2048;  // change this to fit the number of steps 
 
 // initialize the stepper library
 AccelStepper stepper(AccelStepper::HALF4WIRE, IN1, IN3, IN2, IN4);
+*/
+const int DIR = 12;
+const int STEP = 14;
+const int STEPPER_SLEEP = 13;
+
+#define motorInterfaceType 1
+AccelStepper stepper(motorInterfaceType, STEP, DIR);
 
 // A single, global CertStore which can be used by all connections.
 // Needs to stay live the entire time any of the WiFiClientBearSSLs
@@ -99,6 +108,9 @@ void setup_wifi() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+  // Serial.println("ArduinoOTA started");
+  // ArduinoOTA.begin();
+  
 }
 
 
@@ -164,6 +176,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       Serial.print(", accel=");
       Serial.print(cmd.acceleration);
     }
+    digitalWrite(STEPPER_SLEEP, HIGH);
   }
   // Falls es kein Array ist, prüfe, ob es ein einzelnes Objekt ist:
   else if (doc.is<JsonObject>()) {
@@ -183,6 +196,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     Serial.print(cmd.v_max);
     Serial.print(", accel=");
     Serial.print(cmd.acceleration);
+    digitalWrite(STEPPER_SLEEP, HIGH);
   }
   else {
     Serial.println("Fehler: Empfangene JSON-Daten sind weder Array noch Objekt!");
@@ -250,13 +264,16 @@ void setup() {
 }
 
 void loop() {
+  // ArduinoOTA.handle();
   if (!client->connected()) {
     reconnect();
   }
   client->loop();
   
+  
   // Falls keine Befehle vorliegen, nichts tun
   if (commandQueue.empty()) {
+    digitalWrite(STEPPER_SLEEP, LOW);
     return;
   }
   
