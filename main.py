@@ -201,7 +201,15 @@ if not ss.df.empty:
 else:
     pressure_target = col2.number_input("Druck (Bar)", value=9.0)
 if col3.button("Druck einstellen", type='primary', use_container_width=True):
-    pressure_diff = pressure_target - pressure_current
+    commands = []
+    t1 = 0
+    p1 = pressure_current
+    t2 = 5
+    p2 = pressure_target
+    cmd = compute_motion_parameters(t1, p1, t2, p2)
+    if cmd:
+        commands.append(cmd)
+    send_to_esp32(commands)
 
 st.divider()
 
