@@ -26,6 +26,7 @@
 #include <CertStoreBearSSL.h>
 #include <ArduinoOTA.h>
 
+
 // WLAN- und MQTT-Daten (bitte anpassen)
 const char* ssid = "ZTE 2.4G";
 const char* password = "Ace-2468";
@@ -108,7 +109,7 @@ void setup_wifi() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-  // Serial.println("ArduinoOTA started");
+  Serial.println("ArduinoOTA started");
   // ArduinoOTA.begin();
   
 }
@@ -203,7 +204,14 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     return;
   }
   
-  // Setze den Startzeitpunkt der Abarbeitung (relativ zum Empfang)
+  // Bestätigungsnachricht senden
+  client->publish("acknowledgment", "Daten empfangen");
+  Serial.println("Bestätigung gesendet.");
+
+  // Warte 3 Sekunden bevor die Befehle ausgeführt werden
+  delay(3000);
+  
+  // Setze den Startzeitpunkt der Abarbeitung
   simulationStart = millis();
   currentCommandIndex = 0;
   commandActive = false;
@@ -291,9 +299,12 @@ void loop() {
       stepper.moveTo(targetPosition);
       commandActive = true;
       Serial.print("Starte Befehl ");
-      Serial.print(currentCommandIndex);
+      Serial.print(currentCommandIndex + 1);
       Serial.print(": Zielposition ");
-      Serial.println(targetPosition);
+      Serial.print(targetPosition);
+      Serial.print(" nach ");
+      Serial.print(elapsed);
+      Serial.println(" Sekunden.");
     }
   }
   
@@ -303,8 +314,10 @@ void loop() {
     // Wenn Ziel erreicht
     if (stepper.distanceToGo() == 0) {
       Serial.print("Befehl ");
-      Serial.print(currentCommandIndex);
-      Serial.println(" abgeschlossen.");
+      Serial.print(currentCommandIndex + 1);
+      Serial.print(" abgeschlossen nach ");
+      Serial.print(elapsed);
+      Serial.println(" Sekunden.");
       commandActive = false;
       currentCommandIndex++;
     }
